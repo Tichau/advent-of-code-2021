@@ -4,8 +4,10 @@ use std::path::Path;
 use regex::Regex;
 
 fn main() {
-    day5();
+    day6s2();
+    day6s1();
     return;
+    day5();
     day4();
     day3s2();
     day3s1();
@@ -13,6 +15,53 @@ fn main() {
     day2s1();
     day1s2();
     day1s1();
+}
+
+// DAY 6
+fn day6s2() {
+    let mut inputs = parse_file_to_list("day6.txt", |line| { 
+        let values: Vec<i32> = line.split(',').map(|str| str.parse::<i32>().unwrap()).collect();
+        values
+    });
+
+    let mut fishes = [0i64; 9];
+    for fish in inputs.get(0).unwrap() {
+        fishes[*fish as usize] += 1;
+    }
+
+    for day in 0..256 {
+        let new_fishes = fishes[0];
+        for i in 1..fishes.len() {
+            fishes[i - 1] = fishes[i];
+        }
+
+        fishes[6] += new_fishes;
+        fishes[8] = new_fishes;
+    }
+
+    let mut total: i64 = 0;
+    fishes.iter_mut().for_each(|count| total += *count);
+    println!("Day6.2: {} fishes", total);
+}
+
+fn day6s1() {
+    let mut inputs = parse_file_to_list("day6.txt", |line| { 
+        let values: Vec<i32> = line.split(',').map(|str| str.parse::<i32>().unwrap()).collect();
+        values
+    });
+
+    let mut fishes = inputs.get_mut(0).unwrap();
+    for day in 0..80 {
+        for i in (0..fishes.len()).rev() {
+            fishes[i] -= 1;
+            if fishes[i] < 0 {
+                fishes[i] = 6;
+                fishes.push(8); // new fish
+            }
+        }
+    }
+
+    println!("Day6.1: {} fishes", fishes.len());
 }
 
 // DAY 5
