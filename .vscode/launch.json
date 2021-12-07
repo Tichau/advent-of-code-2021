@@ -10,7 +10,7 @@
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/target/debug/aoc2021.exe",
-            "args": [],
+            "args": ["test.txt"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "sourceFileMap": {
