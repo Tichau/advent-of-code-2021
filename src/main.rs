@@ -4,17 +4,70 @@ use std::path::Path;
 use regex::Regex;
 
 fn main() {
-    day6s2();
-    day6s1();
-    return;
-    day5();
-    day4();
-    day3s2();
-    day3s1();
-    day2s2();
-    day2s1();
-    day1s2();
-    day1s1();
+    day7s2();
+}
+
+// DAY 7
+
+fn day7s2() {
+    let mut inputs = parse_file_to_list("day7.txt", |line| { 
+        let values: Vec<i32> = line.split(',').map(|str| str.parse::<i32>().unwrap()).collect();
+        values
+    });
+
+    let positions = inputs.get(0).unwrap();
+
+    let mut min = 99999;
+    let mut max = -99999;
+    positions.iter().for_each(|p| {
+        if *p < min { min = *p }
+        if *p > max { max = *p }
+    });
+
+    let mut min_conso = 999999999;
+    let mut min_position = -1;
+    for position in min..max {
+        let mut conso = 0i32;
+        positions.iter().for_each(|p| {
+            let d = (position - *p).abs();
+            conso += d*(d+1) / 2; // arithmetic sum
+        });
+        if conso < min_conso {
+            min_conso = conso;
+            min_position = position;
+        }
+    }
+
+    println!("Day7.1: Position {} Consommation {}", min_position, min_conso);
+}
+
+fn day7s1() {
+    let mut inputs = parse_file_to_list("day7.txt", |line| { 
+        let values: Vec<i32> = line.split(',').map(|str| str.parse::<i32>().unwrap()).collect();
+        values
+    });
+
+    let positions = inputs.get_mut(0).unwrap();
+
+    let mut min = 99999;
+    let mut max = -99999;
+    positions.iter().for_each(|p| {
+        if *p < min { min = *p }
+        if *p > max { max = *p }
+    });
+
+    let mut min_conso = 9999999;
+    let mut min_position = 0;
+    for position in min..max {
+        let mut conso = 0i32;
+        positions.iter().for_each(|p| conso += (position - *p).abs());
+        if conso < min_conso {
+            min_conso = conso;
+            min_position = position;
+        }
+    }
+
+    println!("Day7.1: Position {} Consommation {}", min_position, min_conso);
 }
 
 // DAY 6
