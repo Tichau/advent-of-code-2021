@@ -87,6 +87,7 @@ fn get_solvers(day: u8) -> (SolverFn, SolverFn) {
         6 => (solvers::day06::part1, solvers::day06::part2),
         7 => (solvers::day07::part1, solvers::day07::part2),
         8 => (solvers::day08::part1, solvers::day08::part2),
+        9 => (solvers::day09::part1, solvers::day09::part2),
         _ => (|_| { println!("Part1: No solver found"); 0 }, |_| { println!("Part2: No solver found"); 0 }),
     }
 }
