@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{self, BufRead};
 use regex::Regex;
 
-fn parse(input_file: io::BufReader<File>) -> (Vec<u8>, Vec<Grid>) {
+pub fn parser(input_file: io::BufReader<File>) -> (Vec<u8>, Vec<Grid>) {
     let regex = Regex::new(r"^\s*([0-9]+)\s*([0-9]+)\s*([0-9]+)\s*([0-9]+)\s*([0-9]+)\s*$").unwrap();
     let mut numbers: Vec<u8> = Vec::new();
     let mut grids: Vec<Grid> = Vec::new();
@@ -38,16 +38,17 @@ fn parse(input_file: io::BufReader<File>) -> (Vec<u8>, Vec<Grid>) {
     (numbers, grids)
 }
 
-pub fn part1(input_file: io::BufReader<File>) -> i64 {
-    let (numbers, mut grids) = parse(input_file);
+pub fn part1(input: &(Vec<u8>, Vec<Grid>)) -> i32 {
+    let numbers = &input.0;
+    let mut grids = input.1.clone();
 
-    for n in numbers {
+    for &n in numbers {
         for i in (0..grids.len()).rev() {
             let grid = &mut grids[i];
             grid.mark(n);
             let (victory, unmarked_sum) = grid.check_victory();
             if victory {
-                let first_to_win = n as i64 * unmarked_sum as i64;
+                let first_to_win = n as i32 * unmarked_sum;
                 println!("First grid to win: {}", first_to_win);
                 return first_to_win;
             }
@@ -58,17 +59,18 @@ pub fn part1(input_file: io::BufReader<File>) -> i64 {
     -1
 }
 
-pub fn part2(input_file: io::BufReader<File>) -> i64 {
-    let (numbers, mut grids) = parse(input_file);
+pub fn part2(input: &(Vec<u8>, Vec<Grid>)) -> i32 {
+    let numbers = &input.0;
+    let mut grids = input.1.clone();
 
-    let mut last_to_win = -1i64;
-    for n in numbers {
+    let mut last_to_win = -1;
+    for &n in numbers {
         for i in (0..grids.len()).rev() {
             let grid = &mut grids[i];
             grid.mark(n);
             let (victory, unmarked_sum) = grid.check_victory();
             if victory {
-                last_to_win = n as i64 * unmarked_sum as i64;
+                last_to_win = n as i32 * unmarked_sum;
                 grids.remove(i);
             }
         }
@@ -78,7 +80,8 @@ pub fn part2(input_file: io::BufReader<File>) -> i64 {
     last_to_win
 }
 
-struct Grid {
+#[derive(Copy, Clone)]
+pub struct Grid {
     grid: [[ Cell; 5]; 5],
 }
 

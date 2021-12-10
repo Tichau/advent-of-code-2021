@@ -3,7 +3,7 @@ use std::io;
 use regex::Regex;
 use crate::helpers;
 
-fn parse(input_file: io::BufReader<File>) -> Vec<Line> {
+pub fn parser(input_file: io::BufReader<File>) -> Vec<Line> {
     let regex = Regex::new(r"^([0-9]+),([0-9]+)\s->\s([0-9]+),([0-9]+)$").unwrap();
     helpers::parse_file_to_list(input_file, |line| { 
         let capture = regex.captures(line).unwrap();
@@ -20,18 +20,16 @@ fn parse(input_file: io::BufReader<File>) -> Vec<Line> {
     })
 }
 
-pub fn part1(input_file: io::BufReader<File>) -> i64 {
-    let inputs = parse(input_file);
-
+pub fn part1(input: &Vec<Line>) -> i32 {
     let mut width = 0i16;
     let mut height = 0i16;
-    inputs.iter().for_each(|line| {
+    input.iter().for_each(|line| {
         if line.p1.x > width { width = line.p1.x } else if line.p2.x > width { width = line.p2.x };
         if line.p1.y > height { height = line.p1.y } else if line.p2.y > height { height = line.p2.y };
     });
     
     let mut map = Map::new((width + 1) as usize, (height + 1) as usize);
-    for line in inputs {
+    for &line in input {
         if line.strait() {
             for p in line {
                 map.increment(p);
@@ -39,38 +37,30 @@ pub fn part1(input_file: io::BufReader<File>) -> i64 {
         }
     }
     
-    let danger_position = map.danger() as i64;
-    println!("{} dangerous positions", danger_position);
-
-    danger_position
+    map.danger()
 }
 
-pub fn part2(input_file: io::BufReader<File>) -> i64 {
-    let inputs = parse(input_file);
-
+pub fn part2(input: &Vec<Line>) -> i32 {
     let mut width = 0i16;
     let mut height = 0i16;
-    inputs.iter().for_each(|line| {
+    input.iter().for_each(|line| {
         if line.p1.x > width { width = line.p1.x } else if line.p2.x > width { width = line.p2.x };
         if line.p1.y > height { height = line.p1.y } else if line.p2.y > height { height = line.p2.y };
     });
     
     let mut map = Map::new((width + 1) as usize, (height + 1) as usize);
-    for line in inputs {
+    for &line in input {
         for p in line {
             map.increment(p);
         }
     }
     
-    let danger_position = map.danger() as i64;
-    println!("{} dangerous positions", danger_position);
-
-    danger_position
+    map.danger()
 }
 
 struct Map {
     width: usize,
-    height: usize,
+    _height: usize,
     map: Box<[i16]>,
 }
 
@@ -78,7 +68,7 @@ impl Map {
     fn new(width: usize, height: usize) -> Self {
         println!("Instantiate map of size {}x{}", width, height);
         Map {
-            height,
+            _height: height,
             width,
             map: vec![0i16; width * height].into_boxed_slice(),
         }
@@ -95,7 +85,8 @@ impl Map {
     }
 }
 
-struct Line {
+#[derive(Copy, Clone)]
+pub struct Line {
     p1: Point,
     p2: Point,
 }

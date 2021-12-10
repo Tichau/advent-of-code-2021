@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io;
 use crate::helpers;
 
-fn parse(input_file: io::BufReader<File>) -> Vec<i32> {
+pub fn parser(input_file: io::BufReader<File>) -> Vec<i32> {
     let mut inputs = helpers::parse_file_to_list(input_file, |line| { 
         let values: Vec<i32> = line.split(',').map(|str| str.parse::<i32>().unwrap()).collect();
         values
@@ -11,57 +11,43 @@ fn parse(input_file: io::BufReader<File>) -> Vec<i32> {
     inputs.pop().unwrap()
 }
 
-pub fn part1(input_file: io::BufReader<File>) -> i64 {
-    let positions = parse(input_file);
-
-    let mut min = 99999;
-    let mut max = -99999;
-    positions.iter().for_each(|p| {
-        if *p < min { min = *p }
-        if *p > max { max = *p }
+pub fn part1(input: &Vec<i32>) -> i32 {
+    let mut min = std::i32::MAX;
+    let mut max = std::i32::MIN;
+    input.iter().for_each(|&p| {
+        if p < min { min = p }
+        if p > max { max = p }
     });
 
-    let mut min_conso = 9999999;
-    let mut min_position = 0;
+    let mut min_conso = std::i32::MAX;
     for position in min..max {
-        let mut conso = 0;
-        positions.iter().for_each(|p| conso += (position - *p).abs());
+        let conso = input.iter().fold(0, |conso, &p| conso + (position - p).abs());
         if conso < min_conso {
             min_conso = conso;
-            min_position = position;
         }
     }
 
-    println!("Position {} Consommation {}", min_position, min_conso);
-
-    min_conso as i64
+    min_conso
 }
 
-pub fn part2(input_file: io::BufReader<File>) -> i64 {
-    let positions = parse(input_file);
-
-    let mut min = 99999;
-    let mut max = -99999;
-    positions.iter().for_each(|p| {
-        if *p < min { min = *p }
-        if *p > max { max = *p }
+pub fn part2(input: &Vec<i32>) -> i64 {
+    let mut min = std::i32::MAX;
+    let mut max = std::i32::MIN;
+    input.iter().for_each(|&p| {
+        if p < min { min = p }
+        if p > max { max = p }
     });
 
-    let mut min_conso = 999999999;
-    let mut min_position = -1;
+    let mut min_conso = std::i64::MAX;
     for position in min..max {
-        let mut conso = 0i32;
-        positions.iter().for_each(|p| {
-            let d = (position - *p).abs();
-            conso += d*(d+1) / 2; // arithmetic sum
+        let conso: i64 = input.iter().fold(0, |conso, &p| {
+            let d = (position - p).abs() as i64;
+            conso + d*(d+1) / 2 // arithmetic sum
         });
         if conso < min_conso {
             min_conso = conso;
-            min_position = position;
         }
     }
 
-    println!("Position {} Consommation {}", min_position, min_conso);
-
-    min_conso as i64
+    min_conso
 }

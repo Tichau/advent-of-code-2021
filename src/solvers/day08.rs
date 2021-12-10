@@ -4,7 +4,7 @@ use std::io;
 use std::panic;
 use crate::helpers;
 
-fn parse(input_file: io::BufReader<File>) -> Vec<Entry> {
+pub fn parser(input_file: io::BufReader<File>) -> Vec<Entry> {
     let inputs = helpers::parse_file_to_list(input_file, |line| {
         let mut parts = line.split(" | ");
         let signals = parts.next().unwrap().split(" ").map(|signal| Digit::from(signal)).collect();
@@ -19,12 +19,10 @@ fn parse(input_file: io::BufReader<File>) -> Vec<Entry> {
     inputs
 }
 
-pub fn part1(input_file: io::BufReader<File>) -> i64 {
-    let inputs = parse(input_file);
-
-    let mut count = 0i64;
-    for entry in inputs {
-        for output in entry.outputs {
+pub fn part1(input: &Vec<Entry>) -> i32 {
+    let mut count = 0;
+    for entry in input {
+        for output in &entry.outputs {
             match output.string.len() {
                 2 | 4 | 3 | 7 => count += 1, // 1, 4, 7, 8
                 _ => (),
@@ -35,11 +33,11 @@ pub fn part1(input_file: io::BufReader<File>) -> i64 {
     count
 }
 
-pub fn part2(input_file: io::BufReader<File>) -> i64 {
-    let inputs = parse(input_file);
-    
-    let mut count = 0i64;
-    for mut entry in inputs {
+pub fn part2(input: &Vec<Entry>) -> u32 {
+    let entries = input.clone();
+
+    let mut count = 0;
+    for mut entry in entries {
         let mut digits: [Digit; 10] = Default::default();
         for i in (0..entry.signals.len()).rev() {
             match &entry.signals[i].string.len() {
@@ -89,17 +87,19 @@ pub fn part2(input_file: io::BufReader<File>) -> i64 {
             number += digits_hash[&entry.outputs[i].hash] * u32::pow(10, (entry.outputs.len() - i - 1) as u32);
         }
 
-        count += number as i64;
+        count += number;
     }
 
     count
 }
 
-struct Entry {
+#[derive(Clone)]
+pub struct Entry {
     signals: Vec<Digit>,
     outputs: Vec<Digit>,
 }
 
+#[derive(Clone)]
 struct Digit {
     string: String,
     hash: u32,

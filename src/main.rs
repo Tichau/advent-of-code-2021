@@ -1,4 +1,5 @@
 use std::env;
+use std::fmt;
 use std::fs::File;
 use std::io;
 use std::path::Path;
@@ -45,50 +46,106 @@ fn main() {
         day = chrono::Local::today().day() as u8;
     }
 
-    println!("### Day {} ###", day);
-
     let path = Path::new("data").join(if input_path.is_empty() { format!("day{:02}.txt", day) } else { input_path });
-    println!("Reading: {}", path.display());
+
+    println!("### Day {} ###", day);
     
-    let (solver_part1, solver_part2) = get_solvers(day);
+    if let Some(mut solver) = get_solvers(day) {
+        {
+            println!("### Parsing input ###");
+            println!("Reading: {}", path.display());
+            let start = Instant::now();
+            let file = io::BufReader::new(File::open(&path).expect("Failed to read file"));
+            solver.parse(file);
+            let duration = start.elapsed();
+            println!("Took {}", fmt_dur(duration));
+        }
+        
+        println!("");
 
-    println!("");
+        {
+            println!("### Running Part 1 ###");
+            let start = Instant::now();
+            solver.part1();
+            let duration = start.elapsed();
+            println!("Took {}", fmt_dur(duration));
+        }
 
-    {
-        println!("### Running Part 1 ###");
-        let file = io::BufReader::new(File::open(&path).expect("Failed to read file"));
-        let start = Instant::now();
-        let result = solver_part1(file);
-        let duration = start.elapsed();
-        println!("Took {}", fmt_dur(duration));
-        println!("Result: {}", result);
-    }
+        println!("");
 
-    println!("");
-
-    {
-        println!("### Running Part 2 ###");
-        let file = io::BufReader::new(File::open(&path).expect("Failed to read file"));
-        let start = Instant::now();
-        let result = solver_part2(file);
-        let duration = start.elapsed();
-        println!("Took {}", fmt_dur(duration));
-        println!("Result: {}", result);
+        {
+            println!("### Running Part 2 ###");
+            let start = Instant::now();
+            solver.part2();
+            let duration = start.elapsed();
+            println!("Took {}", fmt_dur(duration));
+        }
+    } else {
+        println!("No solver found for day {}.", day);
     }
 }
 
-fn get_solvers(day: u8) -> (SolverFn, SolverFn) {
+fn get_solvers(day: u8) -> Option<Box<dyn Solver>> {
     match day {
-        1 => (solvers::day01::part1, solvers::day01::part2),
-        2 => (solvers::day02::part1, solvers::day02::part2),
-        3 => (solvers::day03::part1, solvers::day03::part2),
-        4 => (solvers::day04::part1, solvers::day04::part2),
-        5 => (solvers::day05::part1, solvers::day05::part2),
-        6 => (solvers::day06::part1, solvers::day06::part2),
-        7 => (solvers::day07::part1, solvers::day07::part2),
-        8 => (solvers::day08::part1, solvers::day08::part2),
-        9 => (solvers::day09::part1, solvers::day09::part2),
-        _ => (|_| { println!("Part1: No solver found"); 0 }, |_| { println!("Part2: No solver found"); 0 }),
+        1 => Some(Box::new(DaySolver::from(solvers::day01::parser, solvers::day01::part1, solvers::day01::part2))),
+        2 => Some(Box::new(DaySolver::from(solvers::day02::parser, solvers::day02::part1, solvers::day02::part2))),
+        3 => Some(Box::new(DaySolver::from(solvers::day03::parser, solvers::day03::part1, solvers::day03::part2))),
+        4 => Some(Box::new(DaySolver::from(solvers::day04::parser, solvers::day04::part1, solvers::day04::part2))),
+        5 => Some(Box::new(DaySolver::from(solvers::day05::parser, solvers::day05::part1, solvers::day05::part2))),
+        6 => Some(Box::new(DaySolver::from(solvers::day06::parser, solvers::day06::part1, solvers::day06::part2))),
+        7 => Some(Box::new(DaySolver::from(solvers::day07::parser, solvers::day07::part1, solvers::day07::part2))),
+        8 => Some(Box::new(DaySolver::from(solvers::day08::parser, solvers::day08::part1, solvers::day08::part2))),
+        9 => Some(Box::new(DaySolver::from(solvers::day09::parser, solvers::day09::part1, solvers::day09::part2))),
+        _ => None,
+    }
+}
+
+trait Solver {
+    fn parse(&mut self, input_file: io::BufReader<File>);
+
+    fn part1(&self);
+    
+    fn part2(&self);
+}
+
+struct DaySolver<T, R1, R2> {
+    parser: fn(io::BufReader<File>) -> T,
+    solver1: fn(&T) -> R1,
+    solver2: fn(&T) -> R2,
+    data: T,
+}
+
+impl<T, R1, R2> DaySolver<T, R1, R2> 
+    where T: Default,
+          R1: fmt::Display,
+          R2: fmt::Display,
+{
+    fn from(parser: fn(io::BufReader<File>) -> T, solver1: fn(&T) -> R1, solver2: fn(&T) -> R2) -> DaySolver<T, R1, R2> {
+        DaySolver {
+            parser,
+            solver1,
+            solver2,
+            data: Default::default(),
+        }
+    }
+}
+
+impl<T, R1, R2> Solver for DaySolver<T, R1, R2> 
+    where R1: fmt::Display,
+          R2: fmt::Display
+{
+    fn parse(&mut self, input_file: io::BufReader<File>) {
+        self.data = (self.parser)(input_file);
+    }
+
+    fn part1(&self) {
+        let result = (self.solver1)(&self.data);
+        println!("Result: {}", result);
+    }
+    
+    fn part2(&self) {
+        let result = (self.solver2)(&self.data);
+        println!("Result: {}", result);
     }
 }
 

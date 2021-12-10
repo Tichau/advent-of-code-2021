@@ -3,7 +3,7 @@ use std::io;
 use regex::Regex;
 use crate::helpers;
 
-fn parse(input_file: io::BufReader<File>) -> Vec<Command> {
+pub fn parser(input_file: io::BufReader<File>) -> Vec<Command> {
     let regex = Regex::new(r"^(forward|down|up)\s([0-9]+)$").unwrap();
     helpers::parse_file_to_list(input_file, |line| {
         let capture = regex.captures(line).unwrap();
@@ -22,12 +22,10 @@ fn parse(input_file: io::BufReader<File>) -> Vec<Command> {
     })
 }
 
-pub fn part1(input_file: io::BufReader<File>) -> i64 {
-    let commands: Vec<Command> = parse(input_file);
-
-    let mut depth: i32 = 0;
-    let mut position: i32 = 0;
-    for command in commands {
+pub fn part1(input: &Vec<Command>) -> i32 {
+    let mut depth = 0;
+    let mut position = 0;
+    for command in input {
         match command.instruction {
             Instruction::Forward => position += command.distance,
             Instruction::Down => depth += command.distance,
@@ -37,16 +35,14 @@ pub fn part1(input_file: io::BufReader<File>) -> i64 {
     
     println!("Final position: {} depth: {}", position, depth);
 
-    (position * depth) as i64
+    position * depth
 }
 
-pub fn part2(input_file: io::BufReader<File>) -> i64 {
-    let commands: Vec<Command> = parse(input_file);
-
-    let mut depth: i32 = 0;
-    let mut position: i32 = 0;
-    let mut aim: i32 = 0;
-    for command in commands {
+pub fn part2(input: &Vec<Command>) -> i32 {
+    let mut depth = 0;
+    let mut position = 0;
+    let mut aim = 0;
+    for command in input {
         match command.instruction {
             Instruction::Forward => { 
                 position += command.distance;
@@ -59,7 +55,7 @@ pub fn part2(input_file: io::BufReader<File>) -> i64 {
     
     println!("Final position: {} depth: {} aim: {}", position, depth, aim);
 
-    (position * depth) as i64
+    position * depth
 }
 
 enum Instruction {
@@ -68,7 +64,7 @@ enum Instruction {
     Forward,
 }
 
-struct Command {
+pub struct Command {
     instruction: Instruction,
     distance: i32,
 }

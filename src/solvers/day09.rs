@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io;
 use crate::helpers;
 
-fn parse(input_file: io::BufReader<File>) -> Vec<Vec<Cell>> {
+pub fn parser(input_file: io::BufReader<File>) -> Vec<Vec<Cell>> {
     helpers::parse_file_to_list(input_file, |line| {
         line.chars().map(|c| { 
             Cell { 
@@ -13,16 +13,14 @@ fn parse(input_file: io::BufReader<File>) -> Vec<Vec<Cell>> {
     })
 }
 
-pub fn part1(input_file: io::BufReader<File>) -> i64 {
-    let map = parse(input_file);
-    let mut count = 0i64;
-
-    for y in 0..map.len() {
-        for x in 0..map[y].len() {
-            let elevation = map[y][x].elevation;
-            if  (x == 0 || elevation < map[y][x-1].elevation) && (x + 1 >= map[y].len() || elevation < map[y][x+1].elevation) && 
-                (y == 0 || elevation < map[y-1][x].elevation) && (y + 1 >= map.len() || elevation < map[y+1][x].elevation) {
-                count += (elevation + 1) as i64;
+pub fn part1(input: &Vec<Vec<Cell>>) -> u32 {
+    let mut count = 0;
+    for y in 0..input.len() {
+        for x in 0..input[y].len() {
+            let elevation = input[y][x].elevation;
+            if  (x == 0 || elevation < input[y][x-1].elevation) && (x + 1 >= input[y].len() || elevation < input[y][x+1].elevation) && 
+                (y == 0 || elevation < input[y-1][x].elevation) && (y + 1 >= input.len() || elevation < input[y+1][x].elevation) {
+                count += elevation + 1;
             }
         }
     }
@@ -30,8 +28,8 @@ pub fn part1(input_file: io::BufReader<File>) -> i64 {
     count
 }
 
-pub fn part2(input_file: io::BufReader<File>) -> i64 {
-    let mut map = parse(input_file);
+pub fn part2(input: &Vec<Vec<Cell>>) -> i32 {
+    let mut map = input.clone();
 
     let mut bassin_index = -1;
     let mut bassin_sizes = [0i32; 3];
@@ -49,7 +47,7 @@ pub fn part2(input_file: io::BufReader<File>) -> i64 {
         }
     }
 
-    bassin_sizes.iter().fold(1, |a, &b| a * b) as i64
+    bassin_sizes.iter().fold(1, |a, &b| a * b)
 }
 
 fn grow(map: &mut Vec<Vec<Cell>>, x: usize, y: usize, bassin: i32, bassin_size: &mut i32) {
@@ -74,7 +72,8 @@ fn grow(map: &mut Vec<Vec<Cell>>, x: usize, y: usize, bassin: i32, bassin_size: 
     }
 }
 
-struct Cell {
+#[derive(Clone, Copy)]
+pub struct Cell {
     elevation: u32,
     bassin: i32,
 }

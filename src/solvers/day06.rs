@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io;
 use crate::helpers;
 
-fn parse(input_file: io::BufReader<File>) -> Vec<i32> {
+pub fn parser(input_file: io::BufReader<File>) -> Vec<i32> {
     let mut inputs = helpers::parse_file_to_list(input_file, |line| { 
         let values: Vec<i32> = line.split(',').map(|str| str.parse::<i32>().unwrap()).collect();
         values
@@ -11,8 +11,8 @@ fn parse(input_file: io::BufReader<File>) -> Vec<i32> {
     inputs.pop().unwrap()
 }
 
-pub fn part1(input_file: io::BufReader<File>) -> i64 {
-    let mut fishes = parse(input_file);
+pub fn part1(input: &Vec<i32>) -> i32 {
+    let mut fishes = input.clone();
 
     for _day in 0..80 {
         for i in (0..fishes.len()).rev() {
@@ -24,16 +24,12 @@ pub fn part1(input_file: io::BufReader<File>) -> i64 {
         }
     }
 
-    println!("{} fishes", fishes.len());
-
-    fishes.len() as i64
+    fishes.len() as i32
 }
 
-pub fn part2(input_file: io::BufReader<File>) -> i64 {
-    let inputs = parse(input_file);
-
+pub fn part2(input: &Vec<i32>) -> i64 {
     let mut fishes = [0i64; 9];
-    for fish in inputs {
+    for &fish in input {
         fishes[fish as usize] += 1;
     }
 
@@ -47,9 +43,5 @@ pub fn part2(input_file: io::BufReader<File>) -> i64 {
         fishes[8] = new_fishes;
     }
 
-    let mut total: i64 = 0;
-    fishes.iter_mut().for_each(|count| total += *count);
-    println!("{} fishes", total);
-
-    total
+    fishes.iter().fold(0, |count, &total| total + count)
 }

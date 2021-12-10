@@ -2,12 +2,14 @@ use std::fs::File;
 use std::io;
 use crate::helpers;
 
-pub fn part1(input_file: io::BufReader<File>) -> i64 {
-    let inputs: Vec<i32> = helpers::parse_file_to_list(input_file, |line| { line.parse().unwrap() });
+pub fn parser(input_file: io::BufReader<File>) -> Vec<i32> {
+    helpers::parse_file_to_list(input_file, |line| { line.parse().unwrap() })
+}
 
-    let mut increased: i64 = 0;
-    inputs.iter().enumerate().for_each(|(i, x)| {
-        if i > 0 && *x > inputs[i-1] {
+pub fn part1(input: &Vec<i32>) -> i32 {
+    let mut increased = 0;
+    input.iter().enumerate().for_each(|(i, x)| {
+        if i > 0 && *x > input[i-1] {
             increased += 1;
         }
     });
@@ -15,16 +17,14 @@ pub fn part1(input_file: io::BufReader<File>) -> i64 {
     increased
 }
 
-pub fn part2(input_file: io::BufReader<File>) -> i64 {
-    let inputs: Vec<i32> = helpers::parse_file_to_list(input_file, |line| { line.parse().unwrap() });
-
+pub fn part2(input: &Vec<i32>) -> i32 {
     let mut windows: [(i32, i32); 3] = [(0, 0), (0, 0), (0, 0)];
     let mut windows_count: usize = 0;
     let mut current_window: usize = 0;
 
-    let mut increased: i64 = 0;
-    let mut last: i32 = 0;
-    inputs.iter().enumerate().for_each(|(i, x)| {
+    let mut increased = 0;
+    let mut last = 0;
+    input.iter().enumerate().for_each(|(i, x)| {
         if windows_count < 3 {
             windows_count += 1;
         }
