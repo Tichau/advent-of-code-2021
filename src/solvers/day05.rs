@@ -8,21 +8,21 @@ pub fn parser(input_file: io::BufReader<File>) -> Vec<Line> {
     helpers::parse_file_to_list(input_file, |line| { 
         let capture = regex.captures(line).unwrap();
         Line {
-            p1: Point {
-                x: capture.get(1).unwrap().as_str().parse::<i16>().unwrap(),
-                y: capture.get(2).unwrap().as_str().parse::<i16>().unwrap(),
+            p1: helpers::Position {
+                x: capture.get(1).unwrap().as_str().parse::<i32>().unwrap(),
+                y: capture.get(2).unwrap().as_str().parse::<i32>().unwrap(),
             },
-            p2: Point {
-                x: capture.get(3).unwrap().as_str().parse::<i16>().unwrap(),
-                y: capture.get(4).unwrap().as_str().parse::<i16>().unwrap(),
+            p2: helpers::Position {
+                x: capture.get(3).unwrap().as_str().parse::<i32>().unwrap(),
+                y: capture.get(4).unwrap().as_str().parse::<i32>().unwrap(),
             },
         }
     })
 }
 
 pub fn part1(input: &Vec<Line>) -> i32 {
-    let mut width = 0i16;
-    let mut height = 0i16;
+    let mut width = 0;
+    let mut height = 0;
     input.iter().for_each(|line| {
         if line.p1.x > width { width = line.p1.x } else if line.p2.x > width { width = line.p2.x };
         if line.p1.y > height { height = line.p1.y } else if line.p2.y > height { height = line.p2.y };
@@ -41,8 +41,8 @@ pub fn part1(input: &Vec<Line>) -> i32 {
 }
 
 pub fn part2(input: &Vec<Line>) -> i32 {
-    let mut width = 0i16;
-    let mut height = 0i16;
+    let mut width = 0;
+    let mut height = 0;
     input.iter().for_each(|line| {
         if line.p1.x > width { width = line.p1.x } else if line.p2.x > width { width = line.p2.x };
         if line.p1.y > height { height = line.p1.y } else if line.p2.y > height { height = line.p2.y };
@@ -74,7 +74,7 @@ impl Map {
         }
     }
 
-    fn increment(&mut self, pos: Point) {
+    fn increment(&mut self, pos: helpers::Position) {
         self.map[pos.x as usize * self.width + pos.y as usize] += 1;
     }
 
@@ -87,8 +87,8 @@ impl Map {
 
 #[derive(Copy, Clone)]
 pub struct Line {
-    p1: Point,
-    p2: Point,
+    p1: helpers::Position,
+    p2: helpers::Position,
 }
 
 impl Line {
@@ -105,24 +105,24 @@ impl PartialEq<Line> for Line {
 
 pub struct LineIntoIterator {
     line: Line,
-    index: Point,
+    index: helpers::Position,
 }
 
 impl IntoIterator for Line {
-    type Item = Point;
+    type Item = helpers::Position;
     type IntoIter = LineIntoIterator;
 
     fn into_iter(self) -> Self::IntoIter {
         LineIntoIterator {
             line: self,
-            index: Point { x: -1, y: -1 },
+            index: helpers::Position { x: -1, y: -1 },
         }
     }
 }
 
 impl Iterator for LineIntoIterator {
-    type Item = Point;
-    fn next(&mut self) -> Option<Point> {
+    type Item = helpers::Position;
+    fn next(&mut self) -> Option<helpers::Position> {
         if self.index == self.line.p2 {
             return None;
         }
@@ -130,7 +130,7 @@ impl Iterator for LineIntoIterator {
         if self.index.x == -1 && self.index.y == -1 {
             self.index = self.line.p1;
         } else {
-            let inc = Point {
+            let inc = helpers::Position {
                 x: (self.line.p2.x - self.index.x).signum(),
                 y: (self.line.p2.y - self.index.y).signum(),
             };
@@ -138,37 +138,5 @@ impl Iterator for LineIntoIterator {
         }
         
         Some(self.index)
-    }
-}
-
-#[derive(Copy, Clone)]
-pub struct Point {
-    x: i16,
-    y: i16,
-}
-
-impl PartialEq<Point> for Point {
-    fn eq(&self, other: &Point) -> bool {
-        return self.x == other.x && self.y == other.y;
-    }
-}
-
-impl std::ops::Sub<Point> for Point {
-    type Output = Self;
-    fn sub(self, rhs: Self) -> Self {
-        return Self {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-        }
-    }
-}
-
-impl std::ops::Add<Point> for Point {
-    type Output = Self;
-    fn add(self, rhs: Self) -> Self {
-        return Self {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-        }
     }
 }

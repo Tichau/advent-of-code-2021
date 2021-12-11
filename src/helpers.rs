@@ -11,3 +11,103 @@ pub fn parse_file_to_list<T>(file: io::BufReader<File>, parse_func: impl Fn(&str
 
     inputs
 }
+
+#[derive(Copy, Clone)]
+pub struct Position {
+    pub x: i32,
+    pub y: i32,
+}
+
+impl Position {
+    pub fn new(x: usize, y: usize) -> Position {
+        Position {
+            x: x as i32,
+            y: y as i32,
+        }
+    }
+
+    pub fn neighbours(&self) -> IntoNeighbourIterator {
+        IntoNeighbourIterator { pos: *self, index: 0 }
+    }
+}
+
+impl PartialEq<Position> for Position {
+    fn eq(&self, other: &Position) -> bool {
+        return self.x == other.x && self.y == other.y;
+    }
+}
+
+impl std::ops::Sub<Position> for Position {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self {
+        return Position {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+
+impl std::ops::Add<Position> for Position {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self {
+        return Position {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+pub struct IntoNeighbourIterator {
+    pos: Position,
+    index: u8,
+}
+
+impl Iterator for IntoNeighbourIterator {
+    type Item = Position;
+    fn next(&mut self) -> Option<Position> {
+        let neighbour = match self.index {
+            0 => self.pos + Position { x: 1, y: 0 },
+            1 => self.pos + Position { x: 1, y: -1 },
+            2 => self.pos + Position { x: 0, y: -1 },
+            3 => self.pos + Position { x: -1, y: -1 },
+            4 => self.pos + Position { x: -1, y: 0 },
+            5 => self.pos + Position { x: -1, y: 1 },
+            6 => self.pos + Position { x: 0, y: 1 },
+            7 => self.pos + Position { x: 1, y: 1 },
+            _ => return None,
+        };
+        
+        self.index += 1;
+        Some(neighbour)
+    }
+}
+
+#[derive(Default)]
+#[derive(Clone)]
+pub struct Map<T> 
+    where T: Clone
+{
+    pub width: usize,
+    pub height: usize,
+    map: Box<[T]>,
+}
+
+impl<T> Map<T>
+    where T: Default + Clone
+{
+    pub fn new(width: usize, height: usize) -> Self {
+        Map {
+            height,
+            width,
+            map: vec![Default::default(); width * height].into_boxed_slice(),
+        }
+    }
+
+    pub fn get(&mut self, pos: Position) -> Option<&mut T> {
+        if pos.x < 0 || pos.x as usize >= self.width || pos.y < 0 || pos.y as usize >= self.height {
+            return None
+        } 
+
+        Some(&mut self.map[pos.x as usize * self.width + pos.y as usize])
+    }
+}
