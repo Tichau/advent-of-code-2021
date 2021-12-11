@@ -1,5 +1,7 @@
 use std::fs::File;
 use std::io::{self, BufRead};
+use std::ops::{Deref, DerefMut};
+use std::fmt::{Display, Formatter, Result};
 
 pub fn parse_file_to_list<T>(file: io::BufReader<File>, parse_func: impl Fn(&str) -> T) -> Vec<T> {
     let mut inputs: Vec<T> = Vec::new();
@@ -82,6 +84,8 @@ impl Iterator for IntoNeighbourIterator {
     }
 }
 
+/// Map
+
 #[derive(Default)]
 #[derive(Clone)]
 pub struct Map<T> 
@@ -90,6 +94,26 @@ pub struct Map<T>
     pub width: usize,
     pub height: usize,
     map: Box<[T]>,
+}
+
+impl<T> Map<T>
+    where T: Clone
+{
+    pub fn get(&self, pos: Position) -> Option<&T> {
+        if pos.x < 0 || pos.x as usize >= self.width || pos.y < 0 || pos.y as usize >= self.height {
+            return None
+        } 
+
+        Some(&self.map[pos.x as usize * self.width + pos.y as usize])
+    }
+
+    pub fn get_mut(&mut self, pos: Position) -> Option<&mut T> {
+        if pos.x < 0 || pos.x as usize >= self.width || pos.y < 0 || pos.y as usize >= self.height {
+            return None
+        } 
+
+        Some(&mut self.map[pos.x as usize * self.width + pos.y as usize])
+    }
 }
 
 impl<T> Map<T>
@@ -102,12 +126,41 @@ impl<T> Map<T>
             map: vec![Default::default(); width * height].into_boxed_slice(),
         }
     }
+}
 
-    pub fn get(&mut self, pos: Position) -> Option<&mut T> {
-        if pos.x < 0 || pos.x as usize >= self.width || pos.y < 0 || pos.y as usize >= self.height {
-            return None
-        } 
+impl<T> Display for Map<T>
+    where T: Clone + Display
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        for y in 0..self.width {
+            for x in 0..self.height {
+                if let Err(error) = write!(f, "{}", self.get(Position::new(x, y)).unwrap()) {
+                    return Err(error);
+                }
+            }
 
-        Some(&mut self.map[pos.x as usize * self.width + pos.y as usize])
+            if let Err(error) = writeln!(f, "") {
+                return Err(error);
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl<T> Deref for Map<T>
+    where T: Clone
+{
+    type Target = [T];
+    fn deref(&self) -> &Self::Target { 
+        &self.map 
+    }
+}
+
+impl<T> DerefMut for Map<T>
+    where T: Clone
+{
+    fn deref_mut(&mut self) -> &mut Self::Target { 
+        &mut self.map 
     }
 }

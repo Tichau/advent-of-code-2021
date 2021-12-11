@@ -28,16 +28,16 @@ pub fn part1(input: &Vec<Line>) -> i32 {
         if line.p1.y > height { height = line.p1.y } else if line.p2.y > height { height = line.p2.y };
     });
     
-    let mut map = Map::new((width + 1) as usize, (height + 1) as usize);
+    let mut map: helpers::Map<i16> = helpers::Map::new((width + 1) as usize, (height + 1) as usize);
     for &line in input {
         if line.strait() {
             for p in line {
-                map.increment(p);
+                *map.get_mut(p).unwrap() += 1;
             }
         }
     }
     
-    map.danger()
+    map.iter().fold(0, |count, &cell| if cell >= 2 {count + 1} else { count })
 }
 
 pub fn part2(input: &Vec<Line>) -> i32 {
@@ -48,41 +48,14 @@ pub fn part2(input: &Vec<Line>) -> i32 {
         if line.p1.y > height { height = line.p1.y } else if line.p2.y > height { height = line.p2.y };
     });
     
-    let mut map = Map::new((width + 1) as usize, (height + 1) as usize);
+    let mut map: helpers::Map<i16> = helpers::Map::new((width + 1) as usize, (height + 1) as usize);
     for &line in input {
         for p in line {
-            map.increment(p);
+            *map.get_mut(p).unwrap() += 1;
         }
     }
     
-    map.danger()
-}
-
-struct Map {
-    width: usize,
-    _height: usize,
-    map: Box<[i16]>,
-}
-
-impl Map {
-    fn new(width: usize, height: usize) -> Self {
-        println!("Instantiate map of size {}x{}", width, height);
-        Map {
-            _height: height,
-            width,
-            map: vec![0i16; width * height].into_boxed_slice(),
-        }
-    }
-
-    fn increment(&mut self, pos: helpers::Position) {
-        self.map[pos.x as usize * self.width + pos.y as usize] += 1;
-    }
-
-    fn danger(&self) -> i32 {
-        let mut count = 0;
-        self.map.iter().for_each(|&cell| if cell >= 2i16 {count+=1});
-        count
-    }
+    map.iter().fold(0, |count, &cell| if cell >= 2 {count + 1} else { count })
 }
 
 #[derive(Copy, Clone)]
