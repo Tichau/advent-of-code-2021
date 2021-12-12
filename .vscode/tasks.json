@@ -17,6 +17,15 @@
 			],
 			"group": "build",
 			"label": "Build"
+		},
+		{
+			"type": "cargo",
+			"subcommand": "test",
+			"problemMatcher": [
+				"$rustc"
+			],
+			"group": "test",
+			"label": "Test"
 		}
 	]
 }

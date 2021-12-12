@@ -8,8 +8,8 @@ pub fn parser(input_file: io::BufReader<File>) -> Vec<i32> {
 
 pub fn part1(input: &Vec<i32>) -> i32 {
     let mut increased = 0;
-    input.iter().enumerate().for_each(|(i, x)| {
-        if i > 0 && *x > input[i-1] {
+    input.iter().enumerate().for_each(|(i, &x)| {
+        if i > 0 && x > input[i-1] {
             increased += 1;
         }
     });

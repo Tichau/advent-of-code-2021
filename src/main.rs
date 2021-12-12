@@ -8,8 +8,7 @@ use chrono::Datelike;
 
 mod helpers;
 mod solvers;
-
-pub type SolverFn = fn(io::BufReader<File>) -> i64;
+mod tests;
 
 fn main() {
     let mut day: u8 = 0;
@@ -111,7 +110,7 @@ trait Solver {
     fn part2(&self);
 }
 
-struct DaySolver<T, R1, R2> {
+pub struct DaySolver<T, R1, R2> {
     parser: fn(io::BufReader<File>) -> T,
     solver1: fn(&T) -> R1,
     solver2: fn(&T) -> R2,
@@ -130,6 +129,14 @@ impl<T, R1, R2> DaySolver<T, R1, R2>
             solver2,
             data: Default::default(),
         }
+    }
+
+    pub fn solve_part1(&self) -> R1 {
+        (self.solver1)(&self.data)
+    }
+
+    pub fn solve_part2(&self) -> R2 {
+        (self.solver2)(&self.data)
     }
 }
 
