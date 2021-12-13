@@ -104,7 +104,7 @@ impl<T> Map<T>
             return None
         } 
 
-        Some(&self.map[pos.x as usize * self.width + pos.y as usize])
+        Some(&self.map[pos.y as usize * self.width + pos.x as usize])
     }
 
     pub fn get_mut(&mut self, pos: Position) -> Option<&mut T> {
@@ -112,7 +112,15 @@ impl<T> Map<T>
             return None
         } 
 
-        Some(&mut self.map[pos.x as usize * self.width + pos.y as usize])
+        Some(&mut self.map[pos.y as usize * self.width + pos.x as usize])
+    }
+
+    pub fn set(&mut self, pos: Position, value: T) {
+        if pos.x < 0 || pos.x as usize >= self.width || pos.y < 0 || pos.y as usize >= self.height {
+            return;
+        } 
+
+        self.map[pos.y as usize * self.width + pos.x as usize] = value;
     }
 }
 
@@ -121,9 +129,17 @@ impl<T> Map<T>
 {
     pub fn new(width: usize, height: usize) -> Self {
         Map {
-            height,
             width,
+            height,
             map: vec![Default::default(); width * height].into_boxed_slice(),
+        }
+    }
+
+    pub fn new_init(width: usize, height: usize, default: T) -> Self {
+        Map {
+            width,
+            height,
+            map: vec![default; width * height].into_boxed_slice(),
         }
     }
 }
@@ -132,8 +148,8 @@ impl<T> Display for Map<T>
     where T: Clone + Display
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        for y in 0..self.width {
-            for x in 0..self.height {
+        for y in 0..self.height {
+            for x in 0..self.width {
                 if let Err(error) = write!(f, "{}", self.get(Position::new(x, y)).unwrap()) {
                     return Err(error);
                 }
