@@ -15,6 +15,8 @@ pub fn parse_file_to_list<T>(file: io::BufReader<File>, parse_func: impl Fn(&str
 }
 
 #[derive(Copy, Clone)]
+#[derive(Eq)]
+#[derive(Hash)]
 pub struct Position {
     pub x: i32,
     pub y: i32,
@@ -28,8 +30,12 @@ impl Position {
         }
     }
 
-    pub fn neighbours(&self) -> IntoNeighbourIterator {
-        IntoNeighbourIterator { pos: *self, index: 0 }
+    pub fn neighbours(&self, diags: bool) -> IntoNeighbourIterator {
+        if diags {
+            IntoNeighbourIterator { pos: *self, index: 0 }
+        } else {
+            IntoNeighbourIterator { pos: *self, index: 4 }
+        }
     }
 }
 
@@ -68,14 +74,14 @@ impl Iterator for IntoNeighbourIterator {
     type Item = Position;
     fn next(&mut self) -> Option<Position> {
         let neighbour = match self.index {
-            0 => self.pos + Position { x: 1, y: 0 },
-            1 => self.pos + Position { x: 1, y: -1 },
-            2 => self.pos + Position { x: 0, y: -1 },
-            3 => self.pos + Position { x: -1, y: -1 },
-            4 => self.pos + Position { x: -1, y: 0 },
-            5 => self.pos + Position { x: -1, y: 1 },
-            6 => self.pos + Position { x: 0, y: 1 },
-            7 => self.pos + Position { x: 1, y: 1 },
+            0 => self.pos + Position { x: 1, y: -1 },
+            1 => self.pos + Position { x: -1, y: -1 },
+            2 => self.pos + Position { x: -1, y: 1 },
+            3 => self.pos + Position { x: 1, y: 1 },
+            4 => self.pos + Position { x: 1, y: 0 },
+            5 => self.pos + Position { x: 0, y: -1 },
+            6 => self.pos + Position { x: -1, y: 0 },
+            7 => self.pos + Position { x: 0, y: 1 },
             _ => return None,
         };
         

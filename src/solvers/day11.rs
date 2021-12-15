@@ -68,7 +68,7 @@ impl helpers::Map<EnergyLevel> {
                     if energy >= 9 {
                         *cell = EnergyLevel::Flash;
                         let mut flashes = 1;
-                        for npos in pos.neighbours() {
+                        for npos in pos.neighbours(true) {
                             flashes += self.increase_energy_level(npos);
                         }
 

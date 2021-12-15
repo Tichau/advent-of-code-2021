@@ -113,4 +113,20 @@ mod tests {
         solver.parse(open_test_file(13));
         assert_eq!(solver.solve_part1(), 775, "Part1");
     }
+
+    #[test]
+    fn day14() {
+        let mut solver = DaySolver::from(day14::parser, day14::part1, day14::part2);
+        solver.parse(open_test_file(14));
+        assert_eq!(solver.solve_part1(), 2027, "Part1");
+        assert_eq!(solver.solve_part2(), 2265039461737, "Part2");
+    }
+
+    #[test]
+    fn day15() {
+        let mut solver = DaySolver::from(day15::parser, day15::part1, day15::part2);
+        solver.parse(open_test_file(15));
+        assert_eq!(solver.solve_part1(), 415, "Part1");
+        assert_eq!(solver.solve_part2(), 2864, "Part2");
+    }
 }
