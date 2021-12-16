@@ -14,6 +14,7 @@ pub fn parse_file_to_list<T>(file: io::BufReader<File>, parse_func: impl Fn(&str
     inputs
 }
 
+#[derive(Default)]
 #[derive(Copy, Clone)]
 #[derive(Eq)]
 #[derive(Hash)]

@@ -1,121 +1,133 @@
 use std::fs::File;
 use std::io;
-use std::collections::{BinaryHeap, HashSet};
+use std::collections::{BinaryHeap};
 use std::cmp::Ordering;
 use crate::helpers;
 
-pub fn parser(input_file: io::BufReader<File>) -> helpers::Map<i32> {
+pub fn parser(input_file: io::BufReader<File>) -> helpers::Map<Pos> {
     let inputs: Vec<Vec<char>> = helpers::parse_file_to_list(input_file, |line| {
         line.chars().collect()
     });
 
-    let mut map: helpers::Map<i32> = helpers::Map::new(inputs[0].len(), inputs.len());
+    let mut map: helpers::Map<Pos> = helpers::Map::new(inputs[0].len(), inputs.len());
     inputs.iter().enumerate().for_each(|(y, line)| {
         line.iter().enumerate().for_each(|(x, value)| {
             let cell = map.get_mut(helpers::Position::new(x, y)).unwrap(); 
-            *cell = value.to_digit(10).unwrap() as i32;
+            *cell = Pos::new(value.to_digit(10).unwrap() as i32);
         });
     });
 
     map
 }
 
-pub fn part1(input: &helpers::Map<i32>) -> i32 {
-    astar(input)
+pub fn part1(input: &helpers::Map<Pos>) -> i32 {
+    let mut map = input.clone();
+    astar(&mut map)
 }
 
-pub fn part2(input: &helpers::Map<i32>) -> i32 {
-    let mut map: helpers::Map<i32> = helpers::Map::new(input.width * 5, input.height * 5);
+pub fn part2(input: &helpers::Map<Pos>) -> i32 {
+    let mut map: helpers::Map<Pos> = helpers::Map::new(input.width * 5, input.height * 5);
 
     for x in 0..input.width {
         for y in 0..input.height {
-            let &value = input.get(helpers::Position::new(x, y)).unwrap();
+            let value = input.get(helpers::Position::new(x, y)).unwrap();
 
             for x_offset in 0..5usize {
                 for y_offset in 0..5usize {
-                    let offset_value = (value - 1 + x_offset as i32 + y_offset as i32) % 9 + 1;
-                    
-                    map.set(helpers::Position::new(x + x_offset * input.width, y + y_offset * input.height), offset_value);
+                    let offset_value = (value.weight - 1 + x_offset as i32 + y_offset as i32) % 9 + 1;
+                    let position = helpers::Position::new(x + x_offset * input.width, y + y_offset * input.height);
+                    map.set(position, Pos::new(offset_value));
                 }
             }
         }
     }
 
-    astar(&map)
+    astar(&mut map)
 }
 
 fn heuristic(start: &helpers::Position, destination: &helpers::Position) -> i32 {
     (destination.x - start.x).abs() + (destination.y - start.y).abs()
 }
 
-pub fn astar(input: &helpers::Map<i32>) -> i32 {
+pub fn astar(input: &mut helpers::Map<Pos>) -> i32 {
     let start_pos = helpers::Position::new(0,0);
     let destination_pos = helpers::Position::new(input.width - 1, input.height - 1);
-    let start = Pos::new(start_pos, 0, heuristic(&start_pos, &destination_pos));
-    let mut close_set: HashSet<helpers::Position> = HashSet::new();
-    let mut open_set: BinaryHeap<Pos> = BinaryHeap::new();
-    open_set.push(start);
+    input.get_mut(start_pos).unwrap().cost = 0;
+    let mut open_set: BinaryHeap<OpenPos> = BinaryHeap::new();
+    open_set.push(OpenPos::new(start_pos, heuristic(&start_pos, &destination_pos)));
 
     while let Some(node) = open_set.pop() {
+        let node_cost = input.get(node.position).unwrap().cost;
         if node.position == destination_pos {
-            return node.cost;
+            return node_cost;
         }
 
         for n in node.position.neighbours(false) {
-            if let Some(&transition_cost) = input.get(n) {
-                let cost = node.cost + transition_cost;
-                let neighbour = Pos::new(n, cost, cost + heuristic(&n, &destination_pos));
-                if close_set.contains(&neighbour.position) {
+            if let Some(neighbour) = input.get_mut(n) {
+                if neighbour.closed {
                     continue;
                 }
-
-                let mut neighbour_cost = i32::MAX;
-                if let Some(neighbour_pos) = open_set.iter().find(|&p| p.eq(&neighbour)) {
-                    neighbour_cost = neighbour_pos.cost;
-                }
-
-                if neighbour.cost < neighbour_cost {
-                    open_set.push(neighbour);
+                
+                let cost = node_cost + neighbour.weight;
+                if cost < neighbour.cost {
+                    neighbour.cost = cost;
+                    open_set.push(OpenPos::new(n, cost + heuristic(&n, &destination_pos)));
                 }
             }
         }
 
-        close_set.insert(node.position);
+        input.get_mut(node.position).unwrap().closed = true;
     }
 
-    0
+    i32::MAX
 }
 
-#[derive(Eq)]
-struct Pos {
-    position: helpers::Position,
+#[derive(Default)]
+#[derive(Copy, Clone)]
+pub struct Pos {
+    weight: i32,
     cost: i32,
-    heuristic: i32,
+    closed: bool,
 }
 
 impl Pos {
-    fn new(pos: helpers::Position, cost: i32, heuristic: i32) -> Pos {
+    fn new(weight: i32) -> Pos {
         Pos {
+            weight: weight,
+            cost: i32::MAX,
+            closed: false,
+        }
+    }
+}
+
+#[derive(Eq)]
+struct OpenPos {
+    position: helpers::Position,
+    heuristic: i32,
+}
+
+impl OpenPos {
+    fn new(pos: helpers::Position, heuristic: i32) -> Self {
+        OpenPos {
             position: pos,
-            cost: cost,
             heuristic: heuristic,
         }
     }
 }
 
-impl PartialEq for Pos {
+impl PartialEq for OpenPos {
     fn eq(&self, other: &Self) -> bool {
         self.position == other.position
     }
 }
 
-impl Ord for Pos {
+impl Ord for OpenPos {
     fn cmp(&self, other: &Self) -> Ordering {
         self.heuristic.cmp(&other.heuristic).reverse()
     }
 }
 
-impl PartialOrd for Pos {
+impl PartialOrd for OpenPos {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
