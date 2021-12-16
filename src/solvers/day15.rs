@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io;
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap, HashSet};
 use std::cmp::Ordering;
 use crate::helpers;
 
@@ -44,15 +44,15 @@ pub fn part2(input: &helpers::Map<i32>) -> i32 {
     astar(&map)
 }
 
-fn heuristic(start: helpers::Position, destination: helpers::Position) -> i32 {
+fn heuristic(start: &helpers::Position, destination: &helpers::Position) -> i32 {
     (destination.x - start.x).abs() + (destination.y - start.y).abs()
 }
 
 pub fn astar(input: &helpers::Map<i32>) -> i32 {
     let start_pos = helpers::Position::new(0,0);
     let destination_pos = helpers::Position::new(input.width - 1, input.height - 1);
-    let start = Pos::new(start_pos, 0, heuristic(start_pos, destination_pos));
-    let mut close_set: Vec<Pos> = Vec::new();
+    let start = Pos::new(start_pos, 0, heuristic(&start_pos, &destination_pos));
+    let mut close_set: HashSet<helpers::Position> = HashSet::new();
     let mut open_set: BinaryHeap<Pos> = BinaryHeap::new();
     open_set.push(start);
 
@@ -64,8 +64,8 @@ pub fn astar(input: &helpers::Map<i32>) -> i32 {
         for n in node.position.neighbours(false) {
             if let Some(&transition_cost) = input.get(n) {
                 let cost = node.cost + transition_cost;
-                let neighbour = Pos::new(n, cost, cost + heuristic(n, destination_pos));
-                if close_set.contains(&neighbour) {
+                let neighbour = Pos::new(n, cost, cost + heuristic(&n, &destination_pos));
+                if close_set.contains(&neighbour.position) {
                     continue;
                 }
 
@@ -80,7 +80,7 @@ pub fn astar(input: &helpers::Map<i32>) -> i32 {
             }
         }
 
-        close_set.push(node);
+        close_set.insert(node.position);
     }
 
     0
