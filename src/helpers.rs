@@ -24,10 +24,10 @@ pub struct Position {
 }
 
 impl Position {
-    pub fn new(x: usize, y: usize) -> Position {
+    pub fn new(x: i32, y: i32) -> Position {
         Position {
-            x: x as i32,
-            y: y as i32,
+            x,
+            y,
         }
     }
 
@@ -63,6 +63,12 @@ impl std::ops::Add<Position> for Position {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
         }
+    }
+}
+
+impl Display for Position {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "({},{})", self.x, self.y)
     }
 }
 
@@ -157,7 +163,7 @@ impl<T> Display for Map<T>
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         for y in 0..self.height {
             for x in 0..self.width {
-                if let Err(error) = write!(f, "{}", self.get(Position::new(x, y)).unwrap()) {
+                if let Err(error) = write!(f, "{}", self.get(Position::new(x as i32, y as i32)).unwrap()) {
                     return Err(error);
                 }
             }

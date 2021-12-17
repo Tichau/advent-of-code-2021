@@ -10,7 +10,7 @@ pub fn parser(input_file: io::BufReader<File>) -> helpers::Map<EnergyLevel> {
     let mut map: helpers::Map<EnergyLevel> = helpers::Map::new(inputs[0].len(), inputs.len());
     inputs.iter().enumerate().for_each(|(y, line)| {
         line.iter().enumerate().for_each(|(x, value)| {
-            let cell = map.get_mut(helpers::Position::new(x, y)).unwrap(); 
+            let cell = map.get_mut(helpers::Position::new(x as i32, y as i32)).unwrap(); 
             *cell = EnergyLevel::Charge(value.to_digit(10).unwrap() as i32);
         });
     });
@@ -25,7 +25,7 @@ pub fn part1(input: &helpers::Map<EnergyLevel>) -> i32 {
     for _ in 0..100 {
         for x in 0..map.width {
             for y in 0..map.height {
-                let pos = helpers::Position::new(x, y);
+                let pos = helpers::Position::new(x as i32, y as i32);
                 score += map.increase_energy_level(pos);
             }
         }
@@ -43,7 +43,7 @@ pub fn part2(input: &helpers::Map<EnergyLevel>) -> i32 {
         let mut flashes = 0;
         for x in 0..map.width {
             for y in 0..map.height {
-                let pos = helpers::Position::new(x, y);
+                let pos = helpers::Position::new(x as i32, y as i32);
                 flashes += map.increase_energy_level(pos);
             }
         }
@@ -86,7 +86,7 @@ impl helpers::Map<EnergyLevel> {
     fn reset_energy_levels(&mut self) {
         for x in 0..self.width {
             for y in 0..self.height {
-                let cell = self.get_mut(helpers::Position::new(x, y)).unwrap(); 
+                let cell = self.get_mut(helpers::Position::new(x as i32, y as i32)).unwrap(); 
                 if let EnergyLevel::Flash = cell { *cell = EnergyLevel::Charge(0) }
             }
         }

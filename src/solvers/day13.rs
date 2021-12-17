@@ -71,14 +71,14 @@ fn process_instruction(map: &helpers::Map<char>, instruction: &FoldInstruction) 
         fold_map = helpers::Map::new_init(map.width - fold, map.height, '.');
         for y in 0..map.height {
             for x in 0..map.width {
-                let pos = helpers::Position::new(x, y);
+                let pos = helpers::Position::new(x as i32, y as i32);
                 if x < fold {
                     if map.get(pos).unwrap() == &'#' {
                         fold_map.set(pos, '#')
                     }
                 } else if x > fold {
                     if map.get(pos).unwrap() == &'#' {
-                        fold_map.set(helpers::Position::new(2 * fold - x, y), '#')
+                        fold_map.set(helpers::Position::new((2 * fold - x) as i32, y as i32), '#')
                     }
                 }
                 
@@ -89,14 +89,14 @@ fn process_instruction(map: &helpers::Map<char>, instruction: &FoldInstruction) 
         fold_map = helpers::Map::new_init(map.width, map.height - fold, '.');
         for y in 0..map.height {
             for x in 0..map.width {
-                let pos = helpers::Position::new(x, y);
+                let pos = helpers::Position::new(x as i32, y as i32);
                 if y < fold {
                     if map.get(pos).unwrap() == &'#' {
                         fold_map.set(pos, '#')
                     }
                 } else if y > fold {
                     if map.get(pos).unwrap() == &'#' {
-                        fold_map.set(helpers::Position::new(x, 2 * fold - y), '#')
+                        fold_map.set(helpers::Position::new(x as i32, (2 * fold - y) as i32), '#')
                     }
                 }
                 

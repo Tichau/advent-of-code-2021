@@ -95,7 +95,7 @@ impl helpers::Map<Cell> {
         for x in 0usize..5 {
             let mut row_count = 0;
             for y in 0usize..5 {
-                let cell = self.get(helpers::Position::new(x, y)).unwrap();
+                let cell = self.get(helpers::Position::new(x as i32, y as i32)).unwrap();
                 if cell.marked { row_count += 1; col_count[y] += 1 } else { unmarked_sum += cell.number as i32 };
             }
 

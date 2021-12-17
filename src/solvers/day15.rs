@@ -12,7 +12,7 @@ pub fn parser(input_file: io::BufReader<File>) -> helpers::Map<Pos> {
     let mut map: helpers::Map<Pos> = helpers::Map::new(inputs[0].len(), inputs.len());
     inputs.iter().enumerate().for_each(|(y, line)| {
         line.iter().enumerate().for_each(|(x, value)| {
-            let cell = map.get_mut(helpers::Position::new(x, y)).unwrap(); 
+            let cell = map.get_mut(helpers::Position::new(x as i32, y as i32)).unwrap(); 
             *cell = Pos::new(value.to_digit(10).unwrap() as i32);
         });
     });
@@ -30,12 +30,12 @@ pub fn part2(input: &helpers::Map<Pos>) -> i32 {
 
     for x in 0..input.width {
         for y in 0..input.height {
-            let value = input.get(helpers::Position::new(x, y)).unwrap();
+            let value = input.get(helpers::Position::new(x as i32, y as i32)).unwrap();
 
             for x_offset in 0..5usize {
                 for y_offset in 0..5usize {
                     let offset_value = (value.weight - 1 + x_offset as i32 + y_offset as i32) % 9 + 1;
-                    let position = helpers::Position::new(x + x_offset * input.width, y + y_offset * input.height);
+                    let position = helpers::Position::new((x + x_offset * input.width) as i32, (y + y_offset * input.height) as i32);
                     map.set(position, Pos::new(offset_value));
                 }
             }
@@ -51,7 +51,7 @@ fn heuristic(start: &helpers::Position, destination: &helpers::Position) -> i32 
 
 pub fn astar(input: &mut helpers::Map<Pos>) -> i32 {
     let start_pos = helpers::Position::new(0,0);
-    let destination_pos = helpers::Position::new(input.width - 1, input.height - 1);
+    let destination_pos = helpers::Position::new((input.width - 1) as i32, (input.height - 1) as i32);
     input.get_mut(start_pos).unwrap().cost = 0;
     let mut open_set: BinaryHeap<OpenPos> = BinaryHeap::new();
     open_set.push(OpenPos::new(start_pos, heuristic(&start_pos, &destination_pos)));
