@@ -145,4 +145,12 @@ mod tests {
         assert_eq!(solver.solve_part1(), 3655, "Part1");
         assert_eq!(solver.solve_part2(), 1447, "Part2");
     }
+
+    #[test]
+    fn day18() {
+        let mut solver = DaySolver::from(day18::parser, day18::part1, day18::part2);
+        solver.parse(open_test_file(18));
+        assert_eq!(solver.solve_part1(), 4137, "Part1");
+        assert_eq!(solver.solve_part2(), 4573, "Part2");
+    }
 }
