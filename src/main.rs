@@ -104,6 +104,7 @@ fn get_solvers(day: u8) -> Option<Box<dyn Solver>> {
         16 => Some(Box::new(DaySolver::from(solvers::day16::parser, solvers::day16::part1, solvers::day16::part2))),
         17 => Some(Box::new(DaySolver::from(solvers::day17::parser, solvers::day17::part1, solvers::day17::part2))),
         18 => Some(Box::new(DaySolver::from(solvers::day18::parser, solvers::day18::part1, solvers::day18::part2))),
+        19 => Some(Box::new(DaySolver::from(solvers::day19::parser, solvers::day19::part1, solvers::day19::part2))),
         _ => None,
     }
 }
