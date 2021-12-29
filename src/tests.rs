@@ -171,6 +171,22 @@ mod tests {
     }
 
     #[test]
+    fn day21() {
+        let mut solver = DaySolver::from(day21::parser, day21::part1, day21::part2);
+        solver.parse(open_test_file(21));
+        assert_eq!(solver.solve_part1(), 1004670, "Part1");
+        assert_eq!(solver.solve_part2(), 492043106122795, "Part2");
+    }
+
+    #[test]
+    fn day22() {
+        let mut solver = DaySolver::from(day22::parser, day22::part1, day22::part2);
+        solver.parse(open_test_file(22));
+        assert_eq!(solver.solve_part1(), 603661, "Part1");
+        assert_eq!(solver.solve_part2(), 1237264238382479, "Part2");
+    }
+
+    #[test]
     fn day23() {
         let mut solver = DaySolver::from(day23::parser, day23::part1, day23::part2);
         solver.parse(open_test_file(23));
