@@ -3,6 +3,8 @@ use std::io::{self, BufRead};
 use regex::Regex;
 use ndarray::{Array1, arr1, Array2, arr2};
 
+const MATCH_COUNT: usize = 12;
+
 pub fn parser(input_file: io::BufReader<File>) -> Vec<ScannerInput> {
     let scanner_regex = Regex::new(r"^--- scanner ([0-9]+) ---$").unwrap();
     let beacon_regex = Regex::new(r"^(-?[0-9]+),(-?[0-9]+),(-?[0-9]+)$").unwrap();
@@ -92,6 +94,7 @@ fn analyse_scanner<'a>(inputs: &'a Vec<ScannerInput>) -> Vec<Scanner<'a>> {
 
     let rotation_matrixes = generate_rotation_matrixes();
 
+    let mut scanners_defined = 1;
     loop {
         for reference_index in 0..scanners.len() {
             for scanner_index in 1..scanners.len() {
@@ -103,19 +106,23 @@ fn analyse_scanner<'a>(inputs: &'a Vec<ScannerInput>) -> Vec<Scanner<'a>> {
                     continue;
                 }
     
-                let (matches, position, orientation) = scanners[scanner_index].find_orientation_and_offset(&rotation_matrixes, &scanners[reference_index]);
-                if matches >= 12 {
+                let (has_matches, position, orientation) = scanners[scanner_index].find_orientation_and_offset(&rotation_matrixes, &scanners[reference_index]);
+                if has_matches {
                     scanners[scanner_index].position = &scanners[reference_index].position + scanners[reference_index].orientation.dot(&position);
                     scanners[scanner_index].orientation = scanners[reference_index].orientation.dot(&orientation);
                     scanners[scanner_index].defined = true;
+                    scanners_defined += 1;
+                    println!("{}%", scanners_defined * 100 / scanners.len());
                 }
             }
         }
 
-        if scanners.iter().fold(0, |sum, scanner| sum + if scanner.defined { 1 } else { 0 }) == scanners.len() {
+        if scanners_defined >= scanners.len() {
             break;
         }
     }
+
+    assert!(scanners_defined == scanners.iter().fold(0, |sum, scanner| sum + if scanner.defined { 1 } else { 0 }));
 
     scanners
 }
@@ -165,28 +172,27 @@ pub struct Scanner<'a> {
 }
 
 impl<'a> Scanner<'a> {
-    fn find_orientation_and_offset(&self, rotation_matrixes: &Vec<Array2<i32>>, reference: &Self) -> (i32, Array1<i32>, Array2<i32>) {
-        let mut orientation = arr2(&[[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
-        let mut offset = arr1(&[0, 0, 0]);
-        let mut matches = 0;
-
+    fn find_orientation_and_offset(&self, rotation_matrixes: &Vec<Array2<i32>>, reference: &Self) -> (bool, Array1<i32>, Array2<i32>) {
         // Test rotations.
         for rotation_matrix in rotation_matrixes {
-            let (count, offset_pos) = self.compute_offset_with_reference(reference, rotation_matrix);
-            if count >= 12 {
-                matches = count;
-                offset = offset_pos;
-                orientation = rotation_matrix.clone();
-                break;
+            let (has_matches, offset_pos) = self.compute_offset_with_reference(reference, rotation_matrix);
+            if has_matches {
+                return (has_matches, offset_pos, rotation_matrix.clone());
             }
         }
 
-        (matches, offset, orientation)
+        (false, arr1(&[0, 0, 0]), arr2(&[[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
     }
 
-    fn count_match(&self, orientation: &Array2<i32>, offset: &Array1<i32>, reference: &Self) -> i32 {
+    fn has_matches(&self, orientation: &Array2<i32>, offset: &Array1<i32>, reference: &Self) -> bool {
         let mut count = 0;
         for beacon_index in 0..self.input.beacons.len() {
+            if beacon_index + MATCH_COUNT - count > self.input.beacons.len() {
+                // Impossible to have MATCH_COUNT matches. Cut.
+                assert!(count < MATCH_COUNT);
+                return false;
+            }
+
             let beacon = &orientation.dot(&self.input.beacons[beacon_index]) + offset;
             for reference_beacon in &reference.input.beacons {
                 if beacon == reference_beacon {
@@ -196,13 +202,14 @@ impl<'a> Scanner<'a> {
             }
         }
 
-        count
+        assert!(count >= MATCH_COUNT);
+        true
     }
 
-    fn compute_offset_with_reference(&self, reference: &Self, orientation: &Array2<i32>) -> (i32, Array1<i32>) {
-        for start_beacon_index in 0..self.input.beacons.len() {
+    fn compute_offset_with_reference(&self, reference: &Self, orientation: &Array2<i32>) -> (bool, Array1<i32>) {
+        for start_beacon_index in 0..self.input.beacons.len()-MATCH_COUNT+1 {
             let start_beacon = &orientation.dot(&self.input.beacons[start_beacon_index]);
-            for end_beacon_index in start_beacon_index+1..self.input.beacons.len() {
+            for end_beacon_index in start_beacon_index+1..self.input.beacons.len()-MATCH_COUNT+1 {
                 let end_beacon = &orientation.dot(&self.input.beacons[end_beacon_index]);
                 let distance = start_beacon - end_beacon;
                 for ref_start_beacon_index in 0..reference.input.beacons.len() {
@@ -222,9 +229,8 @@ impl<'a> Scanner<'a> {
                                 panic!("should have found an offset"); 
                             }
 
-                            let count = self.count_match(orientation, &offset, reference);
-                            if count >= 12 {
-                                return (count, offset);
+                            if self.has_matches(orientation, &offset, reference) {
+                                return (true, offset);
                             }
                         }
                     }
@@ -232,7 +238,7 @@ impl<'a> Scanner<'a> {
             }
         }
 
-        (0, arr1(&[0, 0, 0]))
+        (false, arr1(&[0, 0, 0]))
     }
 }
 
